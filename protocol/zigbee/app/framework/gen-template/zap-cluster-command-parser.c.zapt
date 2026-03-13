@@ -121,17 +121,24 @@ EmberAfStatus zcl_decode_{{as_underscore_lowercase clusterName}}_cluster_{{as_un
 {{!--Not a fixed length command, command argument present in all zcl specifications and present if conditions are present for the command argument--}}
 {{#if_command_arg_always_present_with_presentif this}}
       // - Argument is conditionally present based on expression: {{add_prefix_to_all_strings presentIf "cmd_struct->"}}
-      if (!({{add_prefix_to_all_strings presentIf "cmd_struct->"}})) { 
+      if (!({{add_prefix_to_all_strings presentIf "cmd_struct->"}})) {
         {{#if_compare typeSize 4 operator='<='}}
         cmd_struct->{{as_symbol label}} = {{as_underlying_zcl_type type array="NULL" one_byte="0xFF" two_byte="0xFFFF" three_byte="0xFFFFFFFF" four_byte="0xFFFFFFFF" five_byte="NULL" six_byte="NULL" seven_byte="NULL" eight_byte="NULL" nine_byte="NULL" short_string="NULL" long_string="NULL" ten_byte="NULL" eleven_byte="NULL" twelve_byte="NULL" thirten_byte="NULL" fourteen_byte="NULL" fifteen_byte="NULL" sixteen_byte="NULL" struct="NULL" default="NULL" zclCharFormatter="true"}};
         {{else}}
         memset(cmd_struct->{{as_symbol label}}, 0, {{typeSize}});
         {{/if_compare}}
       } else {
+        if (cmd->bufLen < payloadOffset + {{zcl_string_type_return type short_string="emberAfStringLength(cmd->buffer + payloadOffset) + 1u)" long_string="emberAfLongStringLength(cmd->buffer + payloadOffset) + 2u)" default=""}}
+{{#unless (is_zcl_string type)}}
+{{as_underlying_zcl_type type array="" one_byte="1" two_byte="2" three_byte="3" four_byte="4" short_string="" long_string="" ten_byte="10" eleven_byte="11" twelve_byte="12" thirten_byte="13" fourteen_byte="14" fifteen_byte="15" sixteen_byte="16" struct="0" default="0" zclCharFormatter="true"}}u)
+{{/unless}}
+        {
+          return EMBER_ZCL_STATUS_MALFORMED_COMMAND;
+        }
 {{/if_command_arg_always_present_with_presentif}}
 {{!--Close: Not a fixed length command, command argument present in all zcl specifications and present if conditions are present for the command argument--}}
         {{#if_compare typeSize 4 operator='<='}}
-        cmd_struct->{{as_symbol label}} = {{as_underlying_zcl_type type 
+        cmd_struct->{{as_symbol label}} = {{as_underlying_zcl_type type
                                     array="cmd->buffer + payloadOffset;" 
                                     one_byte="sli_decode_parse_one_byte(cmd, payloadOffset);"
                                     two_byte="sli_decode_parse_two_bytes(cmd, payloadOffset);"
